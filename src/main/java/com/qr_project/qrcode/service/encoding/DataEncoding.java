@@ -56,7 +56,7 @@ public class DataEncoding {
 
     // Mã hóa dữ liệu
 
-    public String versionDetermine(String data, String errorCorrectionLevel) {
+    public int versionDetermine(String data, String errorCorrectionLevel) {
         int length = data.length();
         String mode;
         if (isNumeric(data)) {
@@ -72,19 +72,22 @@ public class DataEncoding {
         if (eclIndex == -1) throw new IllegalArgumentException("Invalid error correction level");
         for (int v = 1; v <= 40; v++) {
             if (getCapacity(v, mode, eclIndex) >= length) {
-                return String.valueOf(v);
+                return v;
             }
         }
         throw new IllegalArgumentException("Data too long for QR code");
     }
 
-    public String encodeData(String data) {
+    public String encodeData(String data, int version) {
         if (isNumeric(data)) {
-            return MODE_NUMERIC + toBinary(data.length(), 10) + encodeNumeric(data) + TERMINATOR;
+            int ccBits = version <= 9 ? 10 : (version <= 26 ? 12 : 14);
+            return MODE_NUMERIC + toBinary(data.length(), ccBits) + encodeNumeric(data);
         } else if (isAlphanumeric(data)) {
-            return MODE_ALPHANUMERIC + toBinary(data.length(), 9) + encodeAlphanumeric(data) + TERMINATOR;
+            int ccBits = version <= 9 ? 9 : (version <= 26 ? 11 : 13);
+            return MODE_ALPHANUMERIC + toBinary(data.length(), ccBits) + encodeAlphanumeric(data);
         } else if (isByte(data)) {
-            return MODE_BYTE + toBinary(data.length(), 8) + encodeByte(data) + TERMINATOR;
+            int ccBits = version <= 9 ? 8 : 16;
+            return MODE_BYTE + toBinary(data.length(), ccBits) + encodeByte(data);
         } else {
             throw new IllegalArgumentException("Unsupported data format");
         }
@@ -97,13 +100,7 @@ public class DataEncoding {
             int bitLength;
 
             if (group.length() == 3) {
-                if (group.charAt(0) == '0' && group.charAt(1) != '0') {
-                    bitLength = 7; // Leading zero case
-                } else if (group.charAt(0) == '0' && group.charAt(1) == '0') {
-                    bitLength = 4; // Two leading zeros case
-                } else {
-                    bitLength = 10; // Normal case
-                }
+                bitLength = 10; 
             } else if (group.length() == 2) {
                 bitLength = 7; 
             } else {
@@ -147,17 +144,26 @@ public class DataEncoding {
     }
 
     public String eightBitCodewords(String data, String errorCorrectionLevel) {
-        String version = versionDetermine(data, errorCorrectionLevel);
-        int totalBits = getTotalCodewords(Integer.parseInt(version), errorCorrectionLevel) * 8;
+        int version = versionDetermine(data, errorCorrectionLevel);
+        int totalBits = getTotalCodewords(version, errorCorrectionLevel) * 8;
 
-        String encodedData = encodeData(data);
+        String encodedData = encodeData(data, version);
         if (encodedData.length() > totalBits) {
             throw new IllegalArgumentException("Encoded data exceeds capacity");
         }
+
         StringBuilder sb = new StringBuilder(encodedData);
-        while (sb.length() < totalBits && sb.length() % 8 != 0) {
-            sb.append('0'); // Padding bits
+        for (int i = 0; i<4 && sb.length() < totalBits; i++) {
+            sb.append('0'); // Terminator bits
         }
+
+        int rem = sb.length() % 8;
+        if (rem != 0) {
+            for (int i = 0; i < (8 - rem) && sb.length() < totalBits; i++) {
+                sb.append('0'); // Padding bits
+            }
+        }
+        
         while (sb.length() < totalBits) {
             sb.append("11101100"); // Pad codeword 1
             if (sb.length() < totalBits) {
