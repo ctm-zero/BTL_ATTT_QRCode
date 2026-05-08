@@ -1,1 +1,1 @@
-package com.yourname.qrcode.service.error;
+package com.qr_project.qrcode.service.error;

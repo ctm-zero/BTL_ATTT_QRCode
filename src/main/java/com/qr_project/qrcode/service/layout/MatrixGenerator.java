@@ -1,1 +1,1 @@
-package com.yourname.qrcode.service.layout;
+package com.qr_project.qrcode.service.layout;
