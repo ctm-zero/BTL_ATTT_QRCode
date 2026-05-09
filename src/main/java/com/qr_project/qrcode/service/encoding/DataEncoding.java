@@ -1,20 +1,25 @@
 package com.qr_project.qrcode.service.encoding;
-
+ 
+import com.qr_project.qrcode.service.error.ErrorCorrection;
 import org.springframework.stereotype.Service;
-
+ 
 @Service
 public class DataEncoding {
-
+ 
     private static final String MODE_NUMERIC = "0001";
     private static final String MODE_ALPHANUMERIC = "0010";
     private static final String MODE_BYTE = "0100";
-
+ 
     private static final String NUMERIC_CHARSET = "0123456789";
     private static final String ALPHANUMERIC_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
     private static final String BYTE_CHARSET = "ISO-8859-1";
-
-    private static final String[] ERROR_CORRECTION_LEVELS = { "L", "M", "Q", "H" };
-
+ 
+    private final ErrorCorrection errorCorrection;
+ 
+    public DataEncoding(ErrorCorrection errorCorrection) {
+        this.errorCorrection = errorCorrection;
+    }
+ 
     // Kiểm tra loại dữ liệu
     public boolean isNumeric(String data) {
         for (char c : data.toCharArray()) {
@@ -24,7 +29,7 @@ public class DataEncoding {
         }
         return true;
     }
-
+ 
     public boolean isAlphanumeric(String data) {
         for (char c : data.toCharArray()) {
             if (ALPHANUMERIC_CHARSET.indexOf(c) == -1) {
@@ -33,7 +38,7 @@ public class DataEncoding {
         }
         return true;
     }
-
+ 
     public boolean isByte(String data) {
         try {
             data.getBytes(BYTE_CHARSET);
@@ -42,7 +47,7 @@ public class DataEncoding {
             return false;
         }
     }
-
+ 
     public String toBinary(int value, int bitlength) {
         String binaryString = Integer.toBinaryString(value);
         StringBuilder sb = new StringBuilder();
@@ -52,9 +57,8 @@ public class DataEncoding {
         sb.append(binaryString);
         return sb.toString();
     }
-
+ 
     // Mã hóa dữ liệu
-
     public int versionDetermine(String data, String errorCorrectionLevel) {
         int length = data.length();
         String mode;
@@ -67,7 +71,7 @@ public class DataEncoding {
         } else {
             throw new IllegalArgumentException("Unsupported data format");
         }
-        int eclIndex = java.util.Arrays.asList(ERROR_CORRECTION_LEVELS).indexOf(errorCorrectionLevel);
+        int eclIndex = java.util.Arrays.asList(ErrorCorrection.ERROR_CORRECTION_LEVELS).indexOf(errorCorrectionLevel);
         if (eclIndex == -1)
             throw new IllegalArgumentException("Invalid error correction level");
         for (int v = 1; v <= 40; v++) {
@@ -77,7 +81,7 @@ public class DataEncoding {
         }
         throw new IllegalArgumentException("Data too long for QR code");
     }
-
+ 
     public String encodeData(String data, int version) {
         if (isNumeric(data)) {
             int ccBits = version <= 9 ? 10 : (version <= 26 ? 12 : 14);
@@ -92,36 +96,38 @@ public class DataEncoding {
             throw new IllegalArgumentException("Unsupported data format");
         }
     }
-
+ 
     private String encodeNumeric(String data) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < data.length(); i += 3) {
-            String group = data.substring(i, Math.min(i + 3, data.length())); // Chia thành nhóm 3 số
-            int bitLength;
-
-            if (group.length() == 3) {
-                bitLength = 10;
-            } else if (group.length() == 2) {
-                bitLength = 7;
-            } else {
-                bitLength = 4;
-            }
-
-            sb.append(toBinary(Integer.parseInt(group), bitLength));
+        int remainder = data.length() % 3;
+        int fullGroups = data.length() / 3;
+        int i = 0;
+ 
+        for (int j = 0; j < fullGroups; j++) {
+            String group = data.substring(i, i + 3);
+            sb.append(toBinary(Integer.parseInt(group), 10));
+            i += 3;
         }
+ 
+        if (remainder == 2) {
+            String group = data.substring(i, i + 2);
+            sb.append(toBinary(Integer.parseInt(group), 7));
+        } else if (remainder == 1) {
+            String group = data.substring(i, i + 1);
+            sb.append(toBinary(Integer.parseInt(group), 4));
+        }
+ 
         return sb.toString();
     }
-
+ 
     private String encodeAlphanumeric(String data) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < data.length(); i += 2) {
-            String group = data.substring(i, Math.min(i + 2, data.length())); // Chia thành cặp 2 ký tự
-            int value = 0;
+            String group = data.substring(i, Math.min(i + 2, data.length()));
             if (group.length() == 2) {
                 int firstCharValue = ALPHANUMERIC_CHARSET.indexOf(group.charAt(0));
                 int secondCharValue = ALPHANUMERIC_CHARSET.indexOf(group.charAt(1));
-                value = firstCharValue * 45 + secondCharValue;
-                sb.append(toBinary(value, 11));
+                sb.append(toBinary(firstCharValue * 45 + secondCharValue, 11));
             } else {
                 int charValue = ALPHANUMERIC_CHARSET.indexOf(group.charAt(0));
                 sb.append(toBinary(charValue, 6));
@@ -129,7 +135,7 @@ public class DataEncoding {
         }
         return sb.toString();
     }
-
+ 
     private String encodeByte(String data) {
         StringBuilder sb = new StringBuilder();
         try {
@@ -142,115 +148,66 @@ public class DataEncoding {
         }
         return sb.toString();
     }
-
+ 
     public String eightBitCodewords(String data, String errorCorrectionLevel, int version) {
-        int totalBits = getTotalCodewords(version, errorCorrectionLevel) * 8;
+        int totalBits = errorCorrection.getTotalCodewords(version, errorCorrectionLevel) * 8;
         String encodedData = encodeData(data, version);
-
+ 
         if (encodedData.length() > totalBits) {
             throw new IllegalArgumentException("Encoded data exceeds capacity");
         }
-
+ 
         StringBuilder sb = new StringBuilder(encodedData);
+ 
+        // Terminator
         for (int i = 0; i < 4 && sb.length() < totalBits; i++) {
-            sb.append('0'); // Terminator bit (4 bits)
+            sb.append('0');
         }
-
+ 
+        // Padding bits để chia hết cho 8
         int rem = sb.length() % 8;
         if (rem != 0) {
             for (int i = 0; i < (8 - rem) && sb.length() < totalBits; i++) {
-                sb.append('0'); // Padding bits to make it a multiple of 8
+                sb.append('0');
             }
         }
-
+ 
+        // Pad codewords
         while (sb.length() < totalBits) {
-            sb.append("11101100"); // Pattern 1
+            sb.append("11101100");
             if (sb.length() < totalBits) {
-                sb.append("00010001"); // Pattern 2
+                sb.append("00010001");
             }
         }
-
+ 
         return sb.substring(0, totalBits);
     }
-
+ 
     public String generateBitstream(String data, String version, String errorCorrectionLevel) {
-
+ 
         // Xử lý EC level auto → mặc định M
         String ecLevel = errorCorrectionLevel.equals("auto") ? "M" : errorCorrectionLevel;
-
+ 
         // Xử lý version auto hoặc thủ công
         int resolvedVersion;
         if (version.equals("auto")) {
             resolvedVersion = versionDetermine(data, ecLevel);
         } else {
             resolvedVersion = Integer.parseInt(version);
-            
-            // Kiểm tra version được chọn có đủ chứa dữ liệu không
+ 
             String mode;
-            if (isNumeric(data))
-                mode = "numeric";
-            else if (isAlphanumeric(data))
-                mode = "alphanumeric";
-            else
-                mode = "byte";
-
-            int eclIndex = java.util.Arrays.asList(ERROR_CORRECTION_LEVELS).indexOf(ecLevel);
+            if (isNumeric(data)) mode = "numeric";
+            else if (isAlphanumeric(data)) mode = "alphanumeric";
+            else mode = "byte";
+ 
+            int eclIndex = java.util.Arrays.asList(ErrorCorrection.ERROR_CORRECTION_LEVELS).indexOf(ecLevel);
             if (getCapacity(resolvedVersion, mode, eclIndex) < data.length()) {
                 throw new IllegalArgumentException(
                         "Data too long for version " + resolvedVersion + " with EC level " + ecLevel);
             }
         }
-
+ 
         return eightBitCodewords(data, ecLevel, resolvedVersion);
-    }
-
-    private int getTotalCodewords(int version, String errorCorrectionLevel) {
-        int[][] codewords = {
-                { 19, 16, 13, 9 }, // 1
-                { 34, 28, 22, 16 }, // 2
-                { 55, 44, 34, 26 }, // 3
-                { 80, 64, 48, 36 }, // 4
-                { 108, 86, 62, 46 }, // 5
-                { 136, 108, 76, 60 }, // 6
-                { 156, 124, 88, 66 }, // 7
-                { 194, 154, 110, 86 }, // 8
-                { 232, 182, 132, 100 }, // 9
-                { 274, 216, 154, 122 }, // 10
-                { 324, 254, 180, 140 }, // 11
-                { 370, 290, 206, 158 }, // 12
-                { 428, 334, 244, 180 }, // 13
-                { 461, 365, 261, 197 }, // 14
-                { 523, 415, 295, 223 }, // 15
-                { 589, 453, 325, 253 }, // 16
-                { 647, 507, 367, 283 }, // 17
-                { 721, 563, 397, 313 }, // 18
-                { 795, 627, 445, 341 }, // 19
-                { 861, 669, 485, 385 }, // 20
-                { 932, 714, 512, 406 }, // 21
-                { 1006, 782, 568, 442 }, // 22
-                { 1094, 860, 614, 464 }, // 23
-                { 1174, 914, 664, 514 }, // 24
-                { 1276, 1000, 718, 538 }, // 25
-                { 1370, 1062, 754, 596 }, // 26
-                { 1468, 1128, 808, 628 }, // 27
-                { 1531, 1193, 871, 661 }, // 28
-                { 1631, 1267, 911, 701 }, // 29
-                { 1735, 1373, 985, 745 }, // 30
-                { 1843, 1455, 1033, 793 }, // 31
-                { 1955, 1541, 1115, 845 }, // 32
-                { 2071, 1631, 1171, 901 }, // 33
-                { 2191, 1725, 1231, 961 }, // 34
-                { 2306, 1812, 1286, 986 }, // 35
-                { 2434, 1914, 1354, 1054 }, // 36
-                { 2566, 1992, 1426, 1096 }, // 37
-                { 2702, 2102, 1502, 1142 }, // 38
-                { 2812, 2216, 1582, 1222 }, // 39
-                { 2956, 2334, 1666, 1276 } // 40
-        };
-        int eclIndex = java.util.Arrays.asList(ERROR_CORRECTION_LEVELS).indexOf(errorCorrectionLevel);
-        if (eclIndex == -1)
-            throw new IllegalArgumentException("Invalid error correction level");
-        return codewords[version - 1][eclIndex];
     }
 
     private int getCapacity(int version, String mode, int eclIndex) {
