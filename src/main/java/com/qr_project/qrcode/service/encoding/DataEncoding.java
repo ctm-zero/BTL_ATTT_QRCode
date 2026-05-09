@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DataEncoding {
-    private static final String TERMINATOR = "0000";
 
     private static final String MODE_NUMERIC = "0001";
     private static final String MODE_ALPHANUMERIC = "0010";
