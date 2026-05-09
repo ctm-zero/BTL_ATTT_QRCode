@@ -222,7 +222,7 @@ public class DataEncoding {
     }
     private int getCapacity(int version, String mode, int eclIndex) {
         int[][] numeric = {
-            {41,33,27,17},
+            {41,34,27,17},
             {77,63,48,34},
             {127,101,77,58},
             {187,149,111,82},
