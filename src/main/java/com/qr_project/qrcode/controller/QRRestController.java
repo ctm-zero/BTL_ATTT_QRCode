@@ -1,1 +1,1 @@
-package com.yourname.qrcode.controller;
+package com.qr_project.qrcode.controller;
