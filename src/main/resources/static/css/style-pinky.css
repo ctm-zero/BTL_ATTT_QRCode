@@ -1,0 +1,339 @@
+/* =============================================
+   RESET & BASE
+   ============================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #f0ede8;
+    color: #1a1a1a;
+}
+
+body::before {
+    content: '✿';
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    font-size: 30px;
+    color: #ff4d6d;
+    opacity: 0.5;
+}
+
+
+/* =============================================
+   HEADER
+   ============================================= */
+header {
+    padding: 44px 48px;
+    border-bottom: 2px solid #ffccd5;
+    background: #fff0f3;
+    text-align: center;
+}
+
+.site-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #ff4d6d;
+}
+
+
+/* =============================================
+   LAYOUT
+   ============================================= */
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    width: 95%;
+    max-width: 1600px;
+    margin: 60px auto;
+}
+
+.panel {
+    background: #ffffff;
+    border: 2px solid #ffccd5;
+    border-radius: 24px;
+    padding: 36px;
+    box-shadow: 0 8px 0 #ffccd5;
+}
+
+/* Result panel: căn giữa theo chiều dọc */
+#result-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+
+/* =============================================
+   FORM — FIELD & LABEL
+   ============================================= */
+.field {
+    margin-bottom: 66px;
+}
+
+.field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #ff758f;
+    margin-bottom: 12px;
+}
+
+
+/* =============================================
+   FORM — INPUT TEXT
+   ============================================= */
+.field input[type="text"] {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    background: #fff5f7;
+    border: 2px solid #ffccd5;
+    border-radius: 14px;
+    color: #5d2e46;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.field input[type="text"]:focus {
+    border-color: #ff8fa3;
+    background: #fff;
+}
+
+.field input[type="text"]::placeholder {
+    color: #ffb3c1;
+    opacity: 1;
+}
+
+
+/* =============================================
+   FORM — EC LEVEL BUTTONS
+   ============================================= */
+.seg-group {
+    display: flex;
+    gap: 8px;
+}
+
+.seg-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 8px;
+    font-family: 'Nunito', sans-serif;
+    background: #fff;
+    border: 2px solid #ffccd5;
+    border-radius: 12px;
+    color: #ff758f;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.2;
+}
+
+.seg-btn:hover {
+    border-color: #ff8fa3;
+    background: #fff5f7;
+}
+
+.seg-btn.active {
+    background: #ff4d6d;
+    border-color: #ff4d6d;
+    color: #fff;
+}
+
+.btn-main {
+    font-size: 16px;
+    font-weight: 800;
+    display: block;
+}
+
+.sub {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.85;
+    display: block;
+    margin-top: 4px;
+}
+
+
+/* =============================================
+   FORM — VERSION SELECT
+   ============================================= */
+#version-select {
+    width: 100%;
+    padding: 16px;
+    padding-right: 44px;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    background: #fff5f7;
+    border: 2px solid #ffccd5;
+    border-radius: 14px;
+    color: #ff758f;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    /* Ẩn mũi tên mặc định */
+    appearance: none;
+    -webkit-appearance: none;
+
+    /* Mũi tên tùy chỉnh */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ff758f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+}
+
+#version-select:focus {
+    border-color: #ff8fa3;
+    background-color: #fff;
+}
+
+#version-select option {
+    font-size: 15px;
+    font-family: 'Nunito', sans-serif;
+    color: #5d2e46;
+    background: #fff;
+}
+
+
+/* =============================================
+   FORM — GENERATE BUTTON
+   ============================================= */
+#generate-btn {
+    width: 100%;
+    padding: 18px;
+    font-size: 15px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: #ff4d6d;
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    margin-top: 8px;
+    box-shadow: 0 4px 0 #c9184a;
+}
+
+#generate-btn:hover {
+    background: #ff758f;
+}
+
+#generate-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #c9184a;
+}
+
+
+/* =============================================
+   RESULT — QR CANVAS
+   ============================================= */
+.canvas-wrap {
+    width: 420px;
+    height: 420px;
+    background: #fff;
+    border: 3px dashed #ffccd5;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#qr-canvas {
+    display: none;
+}
+
+.placeholder-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffb3c1;
+    text-align: center;
+    line-height: 1.6;
+}
+
+
+/* =============================================
+   RESULT — META CHIPS
+   ============================================= */
+.meta-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.meta-chip {
+    flex: 1;
+    padding: 14px 10px;
+    background: #fff5f7;
+    border: 2px solid #ffccd5;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.meta-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #ff8fa3;
+    margin-bottom: 4px;
+}
+
+.meta-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ff4d6d;
+}
+
+
+/* =============================================
+   RESULT — DOWNLOAD BUTTON
+   ============================================= */
+#download-btn {
+    width: 50%;
+    padding: 18px;
+    font-size: 15px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: #fff5f7;
+    border: 2px solid #ffccd5;
+    border-radius: 16px;
+    color: #ff4d6d;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 #ffccd5;
+}
+
+#download-btn:hover:not(:disabled) {
+    background: #fff5f7;
+    border-color: #ff8fa3;
+}
+
+#download-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #ffccd5;
+}
+
+#download-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

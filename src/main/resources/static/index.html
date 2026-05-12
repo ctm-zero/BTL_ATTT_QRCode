@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
+
+    <link id="theme-css" rel="stylesheet" href="css/style-pinky.css">
+</head>
+
+<body>
+
+    <!-- ───────────── HEADER ───────────── -->
+    <header>
+        <p class="site-title">QR Code Generator</p>
+    </header>
+
+    <!-- ───────────── THEME TOGGLE ───────────── -->
+    <button id="theme-toggle" onclick="toggleTheme()" title="Chuyển theme"></button>
+
+    <!-- ───────────── MAIN ───────────── -->
+    <main class="container">
+
+        <!-- ── FORM PANEL ── -->
+        <div class="panel" id="form-panel">
+
+            <!-- Dữ liệu -->
+            <div class="field">
+                <label for="data">Dữ liệu</label>
+                <input type="text" id="data" placeholder="Nhập text hoặc URL...">
+            </div>
+
+            <!-- Mức sửa lỗi -->
+            <div class="field">
+                <label>Mức sửa lỗi - EC Level</label>
+                <div class="seg-group" id="ec-group">
+                    <button class="seg-btn active" data-value="auto">
+                        <span class="btn-main">Auto</span>
+                    </button>
+                    <button class="seg-btn" data-value="L">
+                        <span class="btn-main">L</span>
+                        <span class="sub">7%</span>
+                    </button>
+                    <button class="seg-btn" data-value="M">
+                        <span class="btn-main">M</span>
+                        <span class="sub">15%</span>
+                    </button>
+                    <button class="seg-btn" data-value="Q">
+                        <span class="btn-main">Q</span>
+                        <span class="sub">25%</span>
+                    </button>
+                    <button class="seg-btn" data-value="H">
+                        <span class="btn-main">H</span>
+                        <span class="sub">30%</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Version -->
+            <div class="field">
+                <label for="version-select">Version</label>
+                <select id="version-select" name="version">
+                    <option value="auto">Auto</option>
+                    <option value="1">Version 1 (21 x 21)</option>
+                    <option value="2">Version 2 (25 x 25)</option>
+                    <option value="3">Version 3 (29 x 29)</option>
+                    <option value="4">Version 4 (33 x 33)</option>
+                    <option value="5">Version 5 (37 x 37)</option>
+                    <option value="6">Version 6 (41 x 41)</option>
+                    <option value="7">Version 7 (45 x 45)</option>
+                    <option value="8">Version 8 (49 x 49)</option>
+                    <option value="9">Version 9 (53 x 53)</option>
+                    <option value="10">Version 10 (57 x 57)</option>
+                    <option value="11">Version 11 (61 x 61)</option>
+                    <option value="12">Version 12 (65 x 65)</option>
+                    <option value="13">Version 13 (69 x 69)</option>
+                    <option value="14">Version 14 (73 x 73)</option>
+                    <option value="15">Version 15 (77 x 77)</option>
+                    <option value="16">Version 16 (81 x 81)</option>
+                    <option value="17">Version 17 (85 x 85)</option>
+                    <option value="18">Version 18 (89 x 89)</option>
+                    <option value="19">Version 19 (93 x 93)</option>
+                    <option value="20">Version 20 (97 x 97)</option>
+                    <option value="21">Version 21 (101 x 101)</option>
+                    <option value="22">Version 22 (105 x 105)</option>
+                    <option value="23">Version 23 (109 x 109)</option>
+                    <option value="24">Version 24 (113 x 113)</option>
+                    <option value="25">Version 25 (117 x 117)</option>
+                    <option value="26">Version 26 (121 x 121)</option>
+                    <option value="27">Version 27 (125 x 125)</option>
+                    <option value="28">Version 28 (129 x 129)</option>
+                    <option value="29">Version 29 (133 x 133)</option>
+                    <option value="30">Version 30 (137 x 137)</option>
+                    <option value="31">Version 31 (141 x 141)</option>
+                    <option value="32">Version 32 (145 x 145)</option>
+                    <option value="33">Version 33 (149 x 149)</option>
+                    <option value="34">Version 34 (153 x 153)</option>
+                    <option value="35">Version 35 (157 x 157)</option>
+                    <option value="36">Version 36 (161 x 161)</option>
+                    <option value="37">Version 37 (165 x 165)</option>
+                    <option value="38">Version 38 (169 x 169)</option>
+                    <option value="39">Version 39 (173 x 173)</option>
+                    <option value="40">Version 40 (177 x 177)</option>
+                </select>
+            </div>
+
+            <!-- Nút Generate -->
+            <button id="generate-btn">GENERATE</button>
+
+        </div>
+
+        <!-- ── RESULT PANEL ── -->
+        <div class="panel" id="result-panel">
+
+            <!-- Hiển thị QR -->
+            <div class="canvas-wrap">
+                <canvas id="qr-canvas"></canvas>
+                <p class="placeholder-text" id="placeholder">QR code<br>sẽ hiện ở đây</p>
+            </div>
+
+            <!-- Thông tin mã QR -->
+            <div class="meta-row">
+                <div class="meta-chip">
+                    <span class="meta-label">Version</span>
+                    <span class="meta-val" id="meta-version">—</span>
+                </div>
+                <div class="meta-chip">
+                    <span class="meta-label">EC Level</span>
+                    <span class="meta-val" id="meta-ec">—</span>
+                </div>
+            </div>
+
+            <!-- Nút tải về -->
+            <button id="download-btn" disabled>TẢI VỀ</button>
+
+        </div>
+
+    </main>
+
+    <style>
+        #theme-toggle {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid;
+            cursor: pointer;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        #theme-toggle::after { content: attr(data-icon); }
+        body.theme-pinky #theme-toggle {
+            background: #fff0f3;
+            color: #ff4d6d;
+            border-color: #ffccd5;
+            box-shadow: 0 4px 0 #ffccd5;
+        }
+        body.theme-pinky #theme-toggle:hover  { background: #ffe0e6; }
+        body.theme-ubuntu #theme-toggle {
+            background: #2c2c2c;
+            color: #e95420;
+            border-color: #3d3d3d;
+            box-shadow: 0 4px 0 #111;
+        }
+        body.theme-ubuntu #theme-toggle:hover  { background: #383838; }
+        #theme-toggle:active { transform: translateY(2px); }
+    </style>
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>

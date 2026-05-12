@@ -1,3 +1,38 @@
+// =============================================
+// THEME SWITCHER
+// =============================================
+const THEMES = {
+    pinky:  {
+        file:      'css/style-pinky.css',
+        icon:      '🌙',
+        bodyClass: 'light-theme'
+    },
+    ubuntu: {
+        file:      'css/style-techno.css',
+        icon:      '🌸',
+        bodyClass: 'dark-theme'
+    },
+};
+
+let currentTheme = localStorage.getItem('theme') || 'pinky';
+applyTheme(currentTheme);
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'pinky' ? 'ubuntu' : 'pinky';
+    applyTheme(currentTheme);
+    localStorage.setItem('theme', currentTheme);
+}
+
+function applyTheme(name) {
+    const t = THEMES[name];
+    document.getElementById('theme-css').href = t.file;
+    document.getElementById('theme-toggle').dataset.icon = t.icon;
+    document.body.classList.remove('theme-pinky', 'theme-ubuntu');
+    document.body.classList.add(t.bodyClass);
+}
+
+// =============================================
+
 // Toggle active cho EC level buttons
 document.querySelectorAll('#ec-group .seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -29,7 +64,7 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
         return;
     }
 
-    const version = getActiveValue('version-group');
+    const version = document.getElementById('version-select').value;
     const errorCorrectionLevel = getActiveValue('ec-group');
 
     try {
