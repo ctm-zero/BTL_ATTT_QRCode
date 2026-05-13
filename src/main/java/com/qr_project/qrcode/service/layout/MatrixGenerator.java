@@ -24,7 +24,7 @@ public class MatrixGenerator {
     }
 
     private void placeFinderPatternsAndSeperators(int[][] matrix) {
-        int[][] finderPatterns = {
+        int[][] finderPattern = {
             {1,1,1,1,1,1,1},
             {1,0,0,0,0,0,1},
             {1,0,1,1,1,0,1},
@@ -32,13 +32,13 @@ public class MatrixGenerator {
             {1,0,1,1,1,0,1},
             {1,0,0,0,0,0,1},
             {1,1,1,1,1,1,1}
-        }
+        };
 
         int size = matrix.length;
 
         for (int i=0; i<7; i++) {
             for (int j=0; j<7; j++) {
-                matrix [i][j] = finderPatterns[i][j];
+                matrix [i][j] = finderPattern[i][j];
                 matrix [i][size - 7 + j] = finderPattern[i][j];
                 matrix [size - 7 + i][j] = finderPattern[i][j];
             }
@@ -85,11 +85,68 @@ public class MatrixGenerator {
     }
 
     private void placeDarkModule(int[][] matrix, int version) {
-        int size = matrix.length;
         matrix[8][(4 * version) + 9] = 1;
     }
 
-    private void reserveAreas(int[][] matrix, int version) {}
+    private void reserveFormatInformationAreas(int[][] matrix) {
+        int size = matrix.length;
+        for (int i=0; i<9; i++) {
+            matrix[8][i] = 0; // top-left
+            matrix[i][8] = 0; // top-left
+            matrix[8][size - 1 - i] = 0; // top-right
+            matrix[size - 1 - i][8] = 0; // bottom-left
+        }
+    }
+
+    private void reserveVersionINformationAreas(int[][] matrix, int version) {
+        if (version < 7 ) return;
+        int size= matrix.length;
+        for (int i=0; i<3; i++) {
+            for (int j=0;  j<6; j++) {
+                matrix[i][size -11 +j] = 0;
+                matrix[size - 11 +j][i] = 0;
+            }
+        }
+    }
+
+    private int[][] generateBaseMatrix(int version) {
+        int[][] matrix = generateMatrix(version);
+        placeFinderPatternsAndSeperators(matrix);
+        placeAlignmentPatterns(matrix, version);
+        placeTimingPatterns(matrix);
+        placeDarkModule(matrix, version);
+        reserveFormatInformationAreas(matrix);
+        reserveVersionINformationAreas(matrix, version);
+        return matrix;
+    }
+
+    public int[][] dataBitsPlacement(int version, String bitStream){
+        int[][] matrix = generateBaseMatrix(version);
+        int size = matrix.length;
+        int bitIndex = 0;
+        for (int col=size-1; col>=0; col-=2) {
+            if (col==6) col--; // skip vertical timing pattern
+            //zigzag bottom to top
+            for (int row =size-1; row>=0; row--) {
+                for (int c=col; c>= col-1 && c>=0; c--) {
+                    if (matrix[row][c] == -1 && bitIndex <bitStream.length()) {
+                        matrix[row][c] = bitStream.charAt(bitIndex) - '0';
+                        bitIndex++;
+                    }
+                }
+            }
+            //zigzag top to bottom
+            for (int row=0; row<size; row++) {
+                for (int c=col; c>= col-1 && c>=0; c--) {
+                    if (matrix[row][c] == -1 && bitIndex <bitStream.length()) {
+                        matrix[row][c] = bitStream.charAt(bitIndex) - '0';
+                        bitIndex++;
+                    }
+                }
+            }
+        }
+        return matrix;
+    }
 
     private boolean overlapsFinderPattern(int row, int col, int size) {
         if (row <= 8 && col <= 8) return true;         // top-left
