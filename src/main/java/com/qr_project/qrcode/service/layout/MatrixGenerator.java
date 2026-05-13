@@ -1,21 +1,24 @@
 package com.qr_project.qrcode.service.layout;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class MatrixGenerator {
     private int QRSize(int version) {
-        return 21 + 4 * (version -1);
+        return 21 + 4 * (version - 1);
     }
 
-    /* 
-        Tạo ma trận QR code trống với kích thước theo phiên bản đã chọn
-        @param version: phiên bản QR code (1-40)
-        @return ma trận 2D chưa gán
-    */
-    public int[][] generateMatrix(int version){
+    /*
+     * Tạo ma trận QR code trống với kích thước theo phiên bản đã chọn
+     * 
+     * @param version: phiên bản QR code (1-40)
+     * 
+     * @return ma trận 2D chưa gán
+     */
+    public int[][] generateMatrix(int version) {
         int size = QRSize(version);
         int[][] matrix = new int[size][size];
-        for (int i = 0; i< size; i++) {
+        for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 matrix[i][j] = -1;
             }
@@ -25,60 +28,62 @@ public class MatrixGenerator {
 
     private void placeFinderPatternsAndSeperators(int[][] matrix) {
         int[][] finderPatterns = {
-            {1,1,1,1,1,1,1},
-            {1,0,0,0,0,0,1},
-            {1,0,1,1,1,0,1},
-            {1,0,1,1,1,0,1},
-            {1,0,1,1,1,0,1},
-            {1,0,0,0,0,0,1},
-            {1,1,1,1,1,1,1}
-        }
+                { 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 0, 0, 0, 0, 0, 1 },
+                { 1, 0, 1, 1, 1, 0, 1 },
+                { 1, 0, 1, 1, 1, 0, 1 },
+                { 1, 0, 1, 1, 1, 0, 1 },
+                { 1, 0, 0, 0, 0, 0, 1 },
+                { 1, 1, 1, 1, 1, 1, 1 }
+        };
 
         int size = matrix.length;
 
-        for (int i=0; i<7; i++) {
-            for (int j=0; j<7; j++) {
-                matrix [i][j] = finderPatterns[i][j];
-                matrix [i][size - 7 + j] = finderPattern[i][j];
-                matrix [size - 7 + i][j] = finderPattern[i][j];
+        for (int i = 0; i < 7; i++) {
+            for (int j = 0; j < 7; j++) {
+                matrix[i][j] = finderPatterns[i][j];
+                matrix[i][size - 7 + j] = finderPatterns[i][j];
+                matrix[size - 7 + i][j] = finderPatterns[i][j];
             }
         }
 
-        for (int i=0; i<8; i++){
+        for (int i = 0; i < 8; i++) {
             matrix[7][i] = 0;
             matrix[i][7] = 0;
-            matrix[size-8][i] = 0;
-            matrix[i][size-8] = 0;
-            matrix[size-8][size-8 + i] = 0;
-            matrix[size-8 + i][size-8] = 0;
+            matrix[size - 8][i] = 0;
+            matrix[i][size - 8] = 0;
+            matrix[size - 8][size - 8 + i] = 0;
+            matrix[size - 8 + i][size - 8] = 0;
         }
     }
 
     private void placeAlignmentPatterns(int[][] matrix, int version) {
-        if (version < 2) return;
+        if (version < 2)
+            return;
         int[][] alignmentPattern = {
-            {1,1,1,1,1},
-            {1,0,0,0,1},
-            {1,0,1,0,1},
-            {1,0,0,0,1},
-            {1,1,1,1,1}
+                { 1, 1, 1, 1, 1 },
+                { 1, 0, 0, 0, 1 },
+                { 1, 0, 1, 0, 1 },
+                { 1, 0, 0, 0, 1 },
+                { 1, 1, 1, 1, 1 }
         };
         int[] centers = getCenterAlignmentPattern(version);
-        for (int x: centers) {
-            for (int y: centers) {
-                if (overlapsFinderPattern(x, y, matrix.length)) continue;
-                for (int i=0; i<5; i++) {
-                    for (int j=0; j<5; j++) {
-                        matrix[x-2+i][y-2+j] = alignmentPattern[i][j];
+        for (int x : centers) {
+            for (int y : centers) {
+                if (overlapsFinderPattern(x, y, matrix.length))
+                    continue;
+                for (int i = 0; i < 5; i++) {
+                    for (int j = 0; j < 5; j++) {
+                        matrix[x - 2 + i][y - 2 + j] = alignmentPattern[i][j];
                     }
                 }
             }
-        }           
+        }
     }
 
     private void placeTimingPatterns(int[][] matrix) {
         int size = matrix.length;
-        for (int i=8; i<size-8; i++) {
+        for (int i = 8; i < size - 8; i++) {
             matrix[6][i] = (i % 2 == 0) ? 1 : 0;
             matrix[i][6] = (i % 2 == 0) ? 1 : 0;
         }
@@ -89,57 +94,63 @@ public class MatrixGenerator {
         matrix[8][(4 * version) + 9] = 1;
     }
 
-    private void reserveAreas(int[][] matrix, int version) {}
+    private void reserveAreas(int[][] matrix, int version) {
+    }
 
     private boolean overlapsFinderPattern(int row, int col, int size) {
-        if (row <= 8 && col <= 8) return true;         // top-left
-        if (row <= 8 && col >= size - 8) return true;  // top-right
-        if (row >= size - 8 && col <= 8) return true;  // bottom-left
+        if (row <= 8 && col <= 8)
+            return true; // top-left
+        if (row <= 8 && col >= size - 8)
+            return true; // top-right
+        if (row >= size - 8 && col <= 8)
+            return true; // bottom-left
         return false;
     }
+
     private static int[] getCenterAlignmentPattern(int version) {
-        if (version < 2) return new int[]{};
+        if (version < 2)
+            return new int[] {};
         int[][] centers = {
-            {6,18},
-            {6,22},
-            {6,26},
-            {6,30},
-            {6,34},
-            {6,22,38},
-            {6,24,42},
-            {6,26,46},
-            {6,28,50},
-            {6,30,54},
-            {6,32,58},
-            {6,34,62},
-            {6,26,46,66},
-            {6,26,48,70},
-            {6,26,50,74},
-            {6,30,54,78},
-            {6,30,56,82},
-            {6,30,58,86},
-            {6,34,62,90},
-            {6,28,50,72,94},
-            {6,26,50,74,98},
-            {6,30,54,78,102},
-            {6,28,54,80,106},
-            {6,32,58,84,110},
-            {6,30,58,86,114},
-            {6,34,62,90,118},
-            {6,26,50,74,98,122},
-            {6,30,54,78,102,126},
-            {6,26,52,78,104,130},
-            {6,30,56,82,108,134},
-            {6,34,60,86,112,138},
-            {6,30,58,86,113,142},
-            {6,34,62,90,118,146},
-            {6,30,54,78,102,126,150},
-            {6,24,50,76,102,128,154},
-            {6,28,54,80,106,132,158},
-            {6,32,58,84,110,136,162},
-            {6,26,54,82,110,138,166},
-            {6,30,58,86,114,142,170}
+                { 6, 18 },
+                { 6, 22 },
+                { 6, 26 },
+                { 6, 30 },
+                { 6, 34 },
+                { 6, 22, 38 },
+                { 6, 24, 42 },
+                { 6, 26, 46 },
+                { 6, 28, 50 },
+                { 6, 30, 54 },
+                { 6, 32, 58 },
+                { 6, 34, 62 },
+                { 6, 26, 46, 66 },
+                { 6, 26, 48, 70 },
+                { 6, 26, 50, 74 },
+                { 6, 30, 54, 78 },
+                { 6, 30, 56, 82 },
+                { 6, 30, 58, 86 },
+                { 6, 34, 62, 90 },
+                { 6, 28, 50, 72, 94 },
+                { 6, 26, 50, 74, 98 },
+                { 6, 30, 54, 78, 102 },
+                { 6, 28, 54, 80, 106 },
+                { 6, 32, 58, 84, 110 },
+                { 6, 30, 58, 86, 114 },
+                { 6, 34, 62, 90, 118 },
+                { 6, 26, 50, 74, 98, 122 },
+                { 6, 30, 54, 78, 102, 126 },
+                { 6, 26, 52, 78, 104, 130 },
+                { 6, 30, 56, 82, 108, 134 },
+                { 6, 34, 60, 86, 112, 138 },
+                { 6, 30, 58, 86, 113, 142 },
+                { 6, 34, 62, 90, 118, 146 },
+                { 6, 30, 54, 78, 102, 126, 150 },
+                { 6, 24, 50, 76, 102, 128, 154 },
+                { 6, 28, 54, 80, 106, 132, 158 },
+                { 6, 32, 58, 84, 110, 136, 162 },
+                { 6, 26, 54, 82, 110, 138, 166 },
+                { 6, 30, 58, 86, 114, 142, 170 }
         };
-        return centers[version -2];
+        return centers[version - 2];
     }
 }
