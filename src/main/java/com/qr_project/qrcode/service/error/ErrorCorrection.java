@@ -108,9 +108,9 @@ public class ErrorCorrection {
      * @return           list of blocks (each block is an int[])
      */
     public List<int[]> splitIntoBlocks(int[] codewords, int[] entry) {
-        int g1Blocks    = entry[0];
+        int g1Blocks     = entry[0];
         int g1CWPerBlock = entry[1];
-        int g2Blocks    = entry[2];
+        int g2Blocks     = entry[2];
         int g2CWPerBlock = entry[3];
 
         List<int[]> blocks = new ArrayList<>();
@@ -168,8 +168,8 @@ public class ErrorCorrection {
         // Convert bitstream to codeword array
         int[] dataCodewords = bitstreamToCodewords(dataBitstream);
 
-        // Look up EC table
-        int[] entry = new QRTable().getECTableEntry(version, ecLevel);
+        // Look up EC table — dùng static method, nhất quán với QRTable
+        int[] entry = QRTable.getECTableEntry(version, ecLevel);
         int ecPerBlock = entry[4];
 
         // Split data into blocks
