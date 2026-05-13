@@ -41,19 +41,26 @@ public class MatrixGenerator {
 
         for (int i = 0; i < 7; i++) {
             for (int j = 0; j < 7; j++) {
-                matrix[i][j] = finderPatterns[i][j];
-                matrix[i][size - 7 + j] = finderPatterns[i][j];
-                matrix[size - 7 + i][j] = finderPatterns[i][j];
+                matrix[i][j] = finderPatterns[i][j];                // Góc trên trái
+                matrix[i][size - 7 + j] = finderPatterns[i][j];     // Góc trên phải
+                matrix[size - 7 + i][j] = finderPatterns[i][j];     // Góc dưới trái
             }
         }
 
+        // Separator xung quanh finder patterns
         for (int i = 0; i < 8; i++) {
-            matrix[7][i] = 0;
-            matrix[i][7] = 0;
-            matrix[size - 8][i] = 0;
-            matrix[i][size - 8] = 0;
-            matrix[size - 8][size - 8 + i] = 0;
-            matrix[size - 8 + i][size - 8] = 0;
+            matrix[i][7] = 0; // Separator bên phải finder pattern trên trái
+            matrix[7][i] = 0; // Separator bên dưới finder pattern trên trái
+        }
+
+        for (int i = 0; i < 8; i++) {
+            matrix[i][size - 8] = 0; // Separator bên trái finder pattern trên phải
+            matrix[7][size - 8 + i] = 0; // Separator bên dưới finder pattern trên phải
+        }
+
+        for (int i = 0; i < 8; i++) {
+            matrix[size - 8][i] = 0; // Separator bên trên finder pattern dưới trái
+            matrix[size - 8 + i][7] = 0; // Separator bên phải finder pattern dưới trái
         }
     }
 
@@ -91,7 +98,7 @@ public class MatrixGenerator {
 
     private void placeDarkModule(int[][] matrix, int version) {
         int size = matrix.length;
-        matrix[8][(4 * version) + 9] = 1;
+        matrix[(4 * version) + 9][8] = 1; // Sửa row và col bị ngược
     }
 
     private void reserveAreas(int[][] matrix, int version) {
