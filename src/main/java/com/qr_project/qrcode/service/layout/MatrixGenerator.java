@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MatrixGenerator {
-    private int QRSize(int version) {
+    private int qrSize(int version) {
         return 21 + 4 * (version - 1);
     }
 
@@ -15,8 +15,8 @@ public class MatrixGenerator {
      * 
      * @return ma trận 2D chưa gán
      */
-    public int[][] generateMatrix(int version) {
-        int size = QRSize(version);
+    private int[][] generateMatrix(int version) {
+        int size = qrSize(version);
         int[][] matrix = new int[size][size];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -26,7 +26,7 @@ public class MatrixGenerator {
         return matrix;
     }
 
-    private void placeFinderPatternsAndSeperators(int[][] matrix) {
+    private void placeFinderPatternsAndSeparators(int[][] matrix) {
         int[][] finderPatterns = {
                 { 1, 1, 1, 1, 1, 1, 1 },
                 { 1, 0, 0, 0, 0, 0, 1 },
@@ -41,9 +41,9 @@ public class MatrixGenerator {
 
         for (int i = 0; i < 7; i++) {
             for (int j = 0; j < 7; j++) {
-                matrix[i][j] = finderPatterns[i][j];                // Góc trên trái
-                matrix[i][size - 7 + j] = finderPatterns[i][j];     // Góc trên phải
-                matrix[size - 7 + i][j] = finderPatterns[i][j];     // Góc dưới trái
+                matrix[i][j] = finderPatterns[i][j]; // Góc trên trái
+                matrix[i][size - 7 + j] = finderPatterns[i][j]; // Góc trên phải
+                matrix[size - 7 + i][j] = finderPatterns[i][j]; // Góc dưới trái
             }
         }
 
@@ -97,66 +97,72 @@ public class MatrixGenerator {
     }
 
     private void placeDarkModule(int[][] matrix, int version) {
-        int size = matrix.length;
         matrix[(4 * version) + 9][8] = 1; // Sửa row và col bị ngược
     }
 
     private void reserveFormatInformationAreas(int[][] matrix) {
         int size = matrix.length;
-        for (int i=0; i<9; i++) {
+        for (int i = 0; i < 8; i++) {
             matrix[8][i] = 0; // top-left
             matrix[i][8] = 0; // top-left
             matrix[8][size - 1 - i] = 0; // top-right
             matrix[size - 1 - i][8] = 0; // bottom-left
         }
+        matrix[8][8] = 0;
     }
 
-    private void reserveVersionINformationAreas(int[][] matrix, int version) {
-        if (version < 7 ) return;
-        int size= matrix.length;
-        for (int i=0; i<3; i++) {
-            for (int j=0;  j<6; j++) {
-                matrix[i][size -11 +j] = 0;
-                matrix[size - 11 +j][i] = 0;
+    private void reserveVersionInformationAreas(int[][] matrix, int version) {
+        if (version < 7)
+            return;
+        int size = matrix.length;
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 3; j++) {
+                matrix[size - 11 + j][i] = 0;
+                matrix[i][size - 11 + j] = 0;
             }
         }
     }
 
     private int[][] generateBaseMatrix(int version) {
         int[][] matrix = generateMatrix(version);
-        placeFinderPatternsAndSeperators(matrix);
+        placeFinderPatternsAndSeparators(matrix);
         placeAlignmentPatterns(matrix, version);
         placeTimingPatterns(matrix);
         placeDarkModule(matrix, version);
         reserveFormatInformationAreas(matrix);
-        reserveVersionINformationAreas(matrix, version);
+        reserveVersionInformationAreas(matrix, version);
         return matrix;
     }
 
-    public int[][] dataBitsPlacement(int version, String bitStream){
+    public int[][] dataBitsPlacement(int version, String bitStream) {
         int[][] matrix = generateBaseMatrix(version);
         int size = matrix.length;
         int bitIndex = 0;
-        for (int col=size-1; col>=0; col-=2) {
-            if (col==6) col--; // skip vertical timing pattern
-            //zigzag bottom to top
-            for (int row =size-1; row>=0; row--) {
-                for (int c=col; c>= col-1 && c>=0; c--) {
-                    if (matrix[row][c] == -1 && bitIndex <bitStream.length()) {
-                        matrix[row][c] = bitStream.charAt(bitIndex) - '0';
-                        bitIndex++;
+        boolean upwards = true; // Zigzag direction
+        for (int col = size - 1; col >= 0; col -= 2) {
+            if (col == 6)
+                col--; // skip vertical timing pattern
+            // zigzag bottom to top
+            if (upwards) {
+                for (int row = size - 1; row >= 0; row--) {
+                    for (int c = col; c >= col - 1 && c >= 0; c--) {
+                        if (matrix[row][c] == -1 && bitIndex < bitStream.length()) {
+                            matrix[row][c] = bitStream.charAt(bitIndex) - '0';
+                            bitIndex++;
+                        }
+                    }
+                }
+            } else {
+                for (int row = 0; row < size; row++) {
+                    for (int c = col; c >= col - 1 && c >= 0; c--) {
+                        if (matrix[row][c] == -1 && bitIndex < bitStream.length()) {
+                            matrix[row][c] = bitStream.charAt(bitIndex) - '0';
+                            bitIndex++;
+                        }
                     }
                 }
             }
-            //zigzag top to bottom
-            for (int row=0; row<size; row++) {
-                for (int c=col; c>= col-1 && c>=0; c--) {
-                    if (matrix[row][c] == -1 && bitIndex <bitStream.length()) {
-                        matrix[row][c] = bitStream.charAt(bitIndex) - '0';
-                        bitIndex++;
-                    }
-                }
-            }
+            upwards = !upwards; // đổi hướng zigzag
         }
         return matrix;
     }
