@@ -105,7 +105,8 @@ public class MatrixMask {
             int penalty = penaltyScore(tempMatrix);
             if (penalty < lowestPenalty) {
                 lowestPenalty = penalty;
-                maskedMatrix = tempMatrix;
+                for (int r = 0; r < size; r++)
+                    maskedMatrix[r] = tempMatrix[r].clone();
             }
         }
         return maskedMatrix;
