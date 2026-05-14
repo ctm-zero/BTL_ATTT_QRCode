@@ -1,6 +1,9 @@
 package com.qr_project.qrcode.controller;
 
 import com.qr_project.qrcode.service.encoding.DataEncoding;
+import com.qr_project.qrcode.service.error.ErrorCorrection;
+import com.qr_project.qrcode.service.layout.MatrixGenerator;
+import com.qr_project.qrcode.service.layout.QRImageRenderer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,48 +15,76 @@ import java.util.Map;
 public class QRRestController {
 
     private final DataEncoding dataEncoding;
+    private final ErrorCorrection errorCorrection;
+    private final MatrixGenerator matrixGenerator;
+    private final QRImageRenderer imageRenderer;
 
-    public QRRestController(DataEncoding dataEncoding) {
+    public QRRestController(DataEncoding dataEncoding,
+            ErrorCorrection errorCorrection,
+            MatrixGenerator matrixGenerator,
+            QRImageRenderer imageRenderer) {
         this.dataEncoding = dataEncoding;
+        this.errorCorrection = errorCorrection;
+        this.matrixGenerator = matrixGenerator;
+        this.imageRenderer = imageRenderer;
     }
 
     @PostMapping("/generate")
     public ResponseEntity<Map<String, Object>> generate(@RequestBody Map<String, String> request) {
-        String data = request.get("data");
-        String version = request.getOrDefault("version", "auto");
-        String errorCorrectionLevel = request.getOrDefault("errorCorrectionLevel", "auto");
+        try {
+            String data = request.get("data");
+            String version = request.getOrDefault("version", "auto");
+            String errorCorrectionLevel = request.getOrDefault("errorCorrectionLevel", "auto");
 
-        // Xác định ecLevel thực tế
-        String ecLevel = errorCorrectionLevel.equals("auto") ? "M" : errorCorrectionLevel;
+            // Resolve ecLevel
+            String ecLevel = errorCorrectionLevel.equals("auto") ? "M" : errorCorrectionLevel;
 
-        // Xác định version thực tế
-        int resolvedVersion;
-        if (version.equals("auto")) {
-            resolvedVersion = dataEncoding.versionDetermine(data, ecLevel);
-        } else {
-            resolvedVersion = Integer.parseInt(version);
+            // Resolve version
+            int resolvedVersion = version.equals("auto")
+                    ? dataEncoding.versionDetermine(data, ecLevel)
+                    : Integer.parseInt(version);
+
+            // Xác định mode
+            String mode;
+            if (dataEncoding.isNumeric(data))
+                mode = "NUMERIC";
+            else if (dataEncoding.isAlphanumeric(data))
+                mode = "ALPHANUMERIC";
+            else
+                mode = "BYTE";
+
+            // Encode -> bitstream
+            String dataBitstream = dataEncoding.generateBitstream(data, version, errorCorrectionLevel);
+
+            // Reed-Solomon EC + interleave + remainder bits
+            String finalBitstream = errorCorrection.generateErrorCorrection(
+                    dataBitstream, resolvedVersion, ecLevel);
+
+            // Tạo ma trận
+            int[][] matrix = matrixGenerator.generateMatrix(resolvedVersion);
+            // TODO: gọi thêm khi MatrixGenerator hoàn chỉnh
+
+            // Bước 4: render -> Base64 PNG
+            String base64Image = imageRenderer.renderToBase64(matrix);
+
+            // Response
+            Map<String, Object> response = new HashMap<>();
+            response.put("version", resolvedVersion);
+            response.put("ecLevel", ecLevel);
+            response.put("mode", mode);
+            response.put("bitstream", finalBitstream);
+            response.put("image", "data:image/png;base64," + base64Image);
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Internal error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
         }
-
-        // Xác định mode
-        String mode;
-        if (dataEncoding.isNumeric(data))
-            mode = "NUMERIC";
-        else if (dataEncoding.isAlphanumeric(data))
-            mode = "ALPHANUMERIC";
-        else
-            mode = "BYTE";
-
-        // Sinh bitstream
-        String bitstream = dataEncoding.generateBitstream(data, version, errorCorrectionLevel);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("bitstream", bitstream);
-        response.put("version", resolvedVersion);
-        response.put("ecLevel", ecLevel);
-        response.put("mode", mode);
-
-        return ResponseEntity.ok(response);
     }
-
-
 }
