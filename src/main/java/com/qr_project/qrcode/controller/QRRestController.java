@@ -3,6 +3,7 @@ package com.qr_project.qrcode.controller;
 import com.qr_project.qrcode.service.encoding.DataEncoding;
 import com.qr_project.qrcode.service.error.ErrorCorrection;
 import com.qr_project.qrcode.service.layout.MatrixGenerator;
+import com.qr_project.qrcode.service.layout.MatrixMask;
 import com.qr_project.qrcode.service.layout.QRImageRenderer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -61,11 +62,12 @@ public class QRRestController {
                     dataBitstream, resolvedVersion, ecLevel);
 
             // Tạo ma trận
-            int[][] matrix = matrixGenerator.generateMatrix(resolvedVersion);
-            // TODO: gọi thêm khi MatrixGenerator hoàn chỉnh
+            int[][] matrix = matrixGenerator.dataBitsPlacement(resolvedVersion, finalBitstream);
+            MatrixMask maskApplier = new MatrixMask();
+            int[][] maskedMatrix = maskApplier.applyMask(matrix, -1); // -1 = auto-select
 
             // Bước 4: render -> Base64 PNG
-            String base64Image = imageRenderer.renderToBase64(matrix);
+            String base64Image = imageRenderer.renderToBase64(maskedMatrix);
 
             // Response
             Map<String, Object> response = new HashMap<>();
