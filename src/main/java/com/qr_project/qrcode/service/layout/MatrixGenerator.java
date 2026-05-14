@@ -112,13 +112,19 @@ public class MatrixGenerator {
     }
 
     private void reserveVersionInformationAreas(int[][] matrix, int version) {
-        if (version < 7)
-            return;
+        if (version < 7) {
+            return; // Chỉ Version 7 trở lên mới có khu vực thông tin version
+        }
+
         int size = matrix.length;
+
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 3; j++) {
-                matrix[size - 11 + j][i] = 0;
-                matrix[i][size - 11 + j] = 0;
+                // Khối 1: Phía trên Finder Pattern bottom-left
+                matrix[size - 11 + j][i] = -1;
+
+                // Khối 2: Bên trái Finder Pattern top-right
+                matrix[i][size - 11 + j] = -1;
             }
         }
     }
