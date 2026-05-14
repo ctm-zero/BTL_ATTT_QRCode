@@ -15,7 +15,7 @@ public class MatrixGenerator {
      * 
      * @return ma trận 2D chưa gán
      */
-    private int[][] generateMatrix(int version) {
+    public int[][] generateMatrix(int version) {
         int size = qrSize(version);
         int[][] matrix = new int[size][size];
         for (int i = 0; i < size; i++) {
