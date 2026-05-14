@@ -12,16 +12,16 @@ import java.util.List;
  * Reed-Solomon error correction for QR codes.
  *
  * Pipeline:
- *   1. splitIntoBlocks()  — split data codewords into groups/blocks
- *   2. generateECForBlock() — RS division per block
- *   3. interleaveBlocks()  — interleave data blocks, then EC blocks
- *   4. generateErrorCorrection() — full pipeline, returns final bitstream
+ * 1. splitIntoBlocks() — split data codewords into groups/blocks
+ * 2. generateECForBlock() — RS division per block
+ * 3. interleaveBlocks() — interleave data blocks, then EC blocks
+ * 4. generateErrorCorrection() — full pipeline, returns final bitstream
  */
 @Service
 public class ErrorCorrection {
 
     // ─────────────────────────────────────────────────────────────
-    // GF(256) tables  (primitive polynomial 0x11D = 285)
+    // GF(256) tables (primitive polynomial 0x11D = 285)
     // ─────────────────────────────────────────────────────────────
     private static final int[] GF_EXP = new int[512];
     private static final int[] GF_LOG = new int[256];
@@ -32,7 +32,8 @@ public class ErrorCorrection {
             GF_EXP[i] = x;
             GF_LOG[x] = i;
             x <<= 1;
-            if ((x & 0x100) != 0) x ^= QRConstants.PRIMITIVE_POLYNOMIAL;
+            if ((x & 0x100) != 0)
+                x ^= QRConstants.PRIMITIVE_POLYNOMIAL;
         }
         // Extend exp table to avoid modulo in multiply
         for (int i = 255; i < 512; i++) {
@@ -45,7 +46,8 @@ public class ErrorCorrection {
     // ─────────────────────────────────────────────────────────────
 
     int gfMultiply(int a, int b) {
-        if (a == 0 || b == 0) return 0;
+        if (a == 0 || b == 0)
+            return 0;
         return GF_EXP[GF_LOG[a] + GF_LOG[b]];
     }
 
@@ -66,9 +68,9 @@ public class ErrorCorrection {
     // ─────────────────────────────────────────────────────────────
 
     int[] generatorPolynomial(int numECCodewords) {
-        int[] g = {1};
+        int[] g = { 1 };
         for (int i = 0; i < numECCodewords; i++) {
-            g = gfPolyMultiply(g, new int[]{1, GF_EXP[i]});
+            g = gfPolyMultiply(g, new int[] { 1, GF_EXP[i] });
         }
         return g;
     }
@@ -85,7 +87,8 @@ public class ErrorCorrection {
 
         for (int i = 0; i < dataCodewords.length; i++) {
             int coef = msg[i];
-            if (coef == 0) continue;
+            if (coef == 0)
+                continue;
             for (int j = 1; j < generator.length; j++) {
                 msg[i + j] ^= gfMultiply(generator[j], coef);
             }
@@ -103,14 +106,14 @@ public class ErrorCorrection {
      * Splits a flat list of data codewords into blocks according to
      * the EC table entry for this version/ECL.
      *
-     * @param codewords  flat array of data codewords
-     * @param entry      EC table entry: [g1Blocks, g1CW, g2Blocks, g2CW, ecPerBlock]
-     * @return           list of blocks (each block is an int[])
+     * @param codewords flat array of data codewords
+     * @param entry     EC table entry: [g1Blocks, g1CW, g2Blocks, g2CW, ecPerBlock]
+     * @return list of blocks (each block is an int[])
      */
     public List<int[]> splitIntoBlocks(int[] codewords, int[] entry) {
-        int g1Blocks     = entry[0];
+        int g1Blocks = entry[0];
         int g1CWPerBlock = entry[1];
-        int g2Blocks     = entry[2];
+        int g2Blocks = entry[2];
         int g2CWPerBlock = entry[3];
 
         List<int[]> blocks = new ArrayList<>();
@@ -159,10 +162,10 @@ public class ErrorCorrection {
      * codewords, interleaves everything, and returns the final
      * combined bitstream ready for matrix placement.
      *
-     * @param dataBitstream  output of DataEncoding.eightBitCodewords()
-     * @param version        QR version (1–40)
-     * @param ecLevel        "L", "M", "Q", or "H"
-     * @return               interleaved data + EC codewords as a binary string
+     * @param dataBitstream output of DataEncoding.eightBitCodewords()
+     * @param version       QR version (1–40)
+     * @param ecLevel       "L", "M", "Q", or "H"
+     * @return interleaved data + EC codewords as a binary string
      */
     public String generateErrorCorrection(String dataBitstream, int version, String ecLevel) {
         // Convert bitstream to codeword array
@@ -183,12 +186,19 @@ public class ErrorCorrection {
 
         // Interleave data blocks, then EC blocks
         int[] interleavedData = interleaveBlocks(dataBlocks);
-        int[] interleavedEC   = interleaveBlocks(ecBlocks);
+        int[] interleavedEC = interleaveBlocks(ecBlocks);
 
         // Concatenate and convert back to bitstream
         StringBuilder sb = new StringBuilder();
-        for (int cw : interleavedData) sb.append(toBinary8(cw));
-        for (int cw : interleavedEC)   sb.append(toBinary8(cw));
+        for (int cw : interleavedData)
+            sb.append(toBinary8(cw));
+        for (int cw : interleavedEC)
+            sb.append(toBinary8(cw));
+
+        // Append remainder bits (all zeros) — ISO 18004 Table 1
+        int remainderBits = QRConstants.REMAINDER_BITS[version - 1];
+        for (int i = 0; i < remainderBits; i++)
+            sb.append('0');
 
         return sb.toString();
     }
@@ -209,7 +219,8 @@ public class ErrorCorrection {
     private String toBinary8(int value) {
         String b = Integer.toBinaryString(value);
         StringBuilder sb = new StringBuilder();
-        for (int i = b.length(); i < 8; i++) sb.append('0');
+        for (int i = b.length(); i < 8; i++)
+            sb.append('0');
         sb.append(b);
         return sb.toString();
     }
