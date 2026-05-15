@@ -257,9 +257,10 @@ header {
 }
 
 #qr-canvas {
-    display: none;
+    display: block;
+    max-width: 100%;
+    height: auto;
 }
-
 .placeholder-text {
     font-size: 14px;
     font-weight: 600;

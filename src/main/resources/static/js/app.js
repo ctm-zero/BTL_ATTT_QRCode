@@ -2,14 +2,14 @@
 // THEME SWITCHER
 // =============================================
 const THEMES = {
-    pinky:  {
-        file:      'css/style-pinky.css',
-        icon:      '🌙',
+    pinky: {
+        file: 'css/style-pinky.css',
+        icon: '🌙',
         bodyClass: 'light-theme'
     },
     ubuntu: {
-        file:      'css/style-techno.css',
-        icon:      '🌸',
+        file: 'css/style-techno.css',
+        icon: '🌸',
         bodyClass: 'dark-theme'
     },
 };
@@ -58,42 +58,50 @@ function getActiveValue(groupId) {
 // Gọi API khi bấm Generate
 document.getElementById('generate-btn').addEventListener('click', async () => {
     const data = document.getElementById('data').value.trim();
-
     if (!data) {
         alert('Vui lòng nhập dữ liệu!');
         return;
     }
-
     const version = document.getElementById('version-select').value;
     const errorCorrectionLevel = getActiveValue('ec-group');
-
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data, version, errorCorrectionLevel })
         });
-
         if (!response.ok) {
             const error = await response.text();
             alert('Lỗi: ' + error);
             return;
         }
-
         const result = await response.json();
-
         document.getElementById('meta-version').textContent = result.version;
         document.getElementById('meta-ec').textContent = result.ecLevel;
 
+        // Draw base64 PNG onto the canvas
+        const canvas = document.getElementById('qr-canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            document.getElementById('download-btn').disabled = false;
+        };
+        img.src = result.image;
+
+        // Hide placeholder
         const placeholder = document.getElementById('placeholder');
+        placeholder.style.display = 'none';
         placeholder.textContent = '✓ Bitstream ready (' + result.bitstream.length + ' bits)';
 
-        console.log('Bitstream:', result.bitstream);
         console.log('Version:', result.version);
         console.log('EC Level:', result.ecLevel);
         console.log('Mode:', result.mode);
-
-    } catch (err) {
-        alert('Không thể kết nối đến server: ' + err.message);
+        console.log('Mask Pattern:', result.maskPattern);
+    }
+    catch (err) {
+        alert('Lỗi: ' + err.message);
     }
 });

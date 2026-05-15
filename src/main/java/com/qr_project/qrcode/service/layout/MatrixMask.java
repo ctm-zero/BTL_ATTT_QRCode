@@ -95,7 +95,7 @@ public class MatrixMask {
 
         return score;
     }
-
+    /*
     public int[][] applyMask(int[][] matrix, int version) {
         int size = matrix.length;
         int[][] maskedMatrix = new int[size][size];
@@ -120,6 +120,35 @@ public class MatrixMask {
             }
         }
         return maskedMatrix;
+    }
+    */
+
+    public MaskResult applyMask(int[][] matrix, int version) {
+        int size = matrix.length;
+        int[][] maskedMatrix = new int[size][size];
+        int lowestPenalty = Integer.MAX_VALUE;
+        int bestMask = 0;
+
+        for (int mask = 0; mask < MASK_FUNC.length; mask++) {
+            int[][] tempMatrix = new int[size][size];
+            MaskFunction tempFunc = MASK_FUNC[mask];
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    tempMatrix[i][j] = matrix[i][j];
+                    if (tempFunc.apply(i, j) && !isFunctionModule(i, j, size, version)) {
+                        tempMatrix[i][j] ^= 1;
+                    }
+                }
+            }
+            int penalty = penaltyScore(tempMatrix);
+            if (penalty < lowestPenalty) {
+                lowestPenalty = penalty;
+                bestMask = mask;
+                for (int r = 0; r < size; r++)
+                    maskedMatrix[r] = tempMatrix[r].clone();
+            }
+        }
+        return new MaskResult(maskedMatrix, bestMask);
     }
 
     private boolean isFunctionModule(int row, int col, int size, int version) {
@@ -174,6 +203,7 @@ public class MatrixMask {
             return true;
         return false;
     }
+
     private static int[] getCenterAlignmentPattern(int version) {
         if (version < 2)
             return new int[] {};
@@ -220,4 +250,6 @@ public class MatrixMask {
         };
         return centers[version - 2];
     }
+
+    public record MaskResult(int[][] matrix, int maskPattern) {}
 }
