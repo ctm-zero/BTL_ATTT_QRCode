@@ -121,10 +121,10 @@ public class MatrixGenerator {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 3; j++) {
                 // Khối 1: Phía trên Finder Pattern bottom-left
-                matrix[size - 11 + j][i] = -1;
+                matrix[size - 11 + j][i] = -2;
 
                 // Khối 2: Bên trái Finder Pattern top-right
-                matrix[i][size - 11 + j] = -1;
+                matrix[i][size - 11 + j] = -2;
             }
         }
     }
@@ -186,6 +186,10 @@ public class MatrixGenerator {
         if (row >= size - 8 && col < 8) {
             return true;
         }
+        // Không đặt pattern ở hàng/ cột 6 (timing pattern)
+        if (row == 6 || col == 6) {
+            return true; 
+        }
         return false;
     }
 
@@ -224,7 +228,7 @@ public class MatrixGenerator {
                 { 6, 26, 52, 78, 104, 130 }, // 30
                 { 6, 30, 56, 82, 108, 134 }, // 31
                 { 6, 34, 60, 86, 112, 138 }, // 32
-                { 6, 30, 58, 86, 113, 142 }, // 33
+                { 6, 30, 58, 86, 114, 142 }, // 33
                 { 6, 34, 62, 90, 118, 146 }, // 34
                 { 6, 30, 54, 78, 102, 126, 150 }, // 35
                 { 6, 24, 50, 76, 102, 128, 154 }, // 36
