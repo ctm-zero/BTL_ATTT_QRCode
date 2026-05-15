@@ -59,7 +59,7 @@ public class FormatAndVersion {
                 size - 2 };
 
         for (int i = 0; i < 15; i++) {
-            int bit = formatBits.charAt(14 - i) - '0'; // bit 0 = LSB = charAt(14)
+            int bit = formatBits.charAt(i) - '0'; // bit 0 = LSB = charAt(14)
             matrix[topLeftRow[i]][topLeftCol[i]] = bit;
             matrix[otherRow[i]][otherCol[i]] = bit;
         }
