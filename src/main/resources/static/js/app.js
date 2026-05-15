@@ -105,3 +105,19 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
         alert('Lỗi: ' + err.message);
     }
 });
+
+document.getElementById('download-btn').addEventListener('click', () => {
+    const canvas = document.getElementById('qr-canvas');
+    if (!canvas.width) return;
+
+    const inputData = document.getElementById('data').value.trim();
+    const safeName = inputData
+        .replace(/https?:\/\//g, '')
+        .replace(/[^a-zA-Z0-9_\-]/g, '_')
+        .slice(0, 40) || 'qrcode';
+
+    const link = document.createElement('a');
+    link.download = `qr_${safeName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+});
