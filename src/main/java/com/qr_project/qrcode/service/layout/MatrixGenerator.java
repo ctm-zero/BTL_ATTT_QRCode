@@ -132,8 +132,8 @@ public class MatrixGenerator {
     private int[][] generateBaseMatrix(int version) {
         int[][] matrix = generateMatrix(version);
         placeFinderPatternsAndSeparators(matrix);
-        placeAlignmentPatterns(matrix, version);
         placeTimingPatterns(matrix);
+        placeAlignmentPatterns(matrix, version);
         reserveFormatInformationAreas(matrix);
         reserveVersionInformationAreas(matrix, version);
         placeDarkModule(matrix, version);
@@ -185,10 +185,6 @@ public class MatrixGenerator {
         // Bottom-left: [size-8, size-1] x [0, 7]
         if (row >= size - 8 && col < 8) {
             return true;
-        }
-        // Không đặt pattern ở hàng/ cột 6 (timing pattern)
-        if (row == 6 || col == 6) {
-            return true; 
         }
         return false;
     }
