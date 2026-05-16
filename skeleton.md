@@ -20,10 +20,10 @@
 |       |               |   |       ErrorCorrection.java    <-- Tính toán mã sửa lỗi (Reed-Solomon)
 |       |               |   |       
 |       |               |   \---layout
-|       |               |           FormatAndVersion.java   
-|       |               |           MatrixGenerator.java
-|       |               |           MatrixMask.java
-|       |               |           QRImageRenderer.java
+|       |               |           FormatAndVersion.java   <-- Tính và ghi thông tin format/version vào ma trận
+|       |               |           MatrixGenerator.java    <-- Sắp xếp bit vào ma trận vuông (Lưới QR)
+|       |               |           MatrixMask.java         <-- Xử lý lựa chọn mask cho QR
+|       |               |           QRImageRenderer.java    <-- Render ma trận thành ảnh PNG
 |       |               |           
 |       |               \---utils                           [TIỆN ÍCH & THÔNG SỐ]
 |       |                       QRConstants.java            <-- Định nghĩa Version, Mask, Kích thước
